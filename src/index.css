@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-luxury-gold: #FFD700;
+  --color-luxury-emerald: #046307;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: white;
+  overflow: hidden;
+}
