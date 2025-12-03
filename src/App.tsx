@@ -27,10 +27,10 @@ function App() {
       >
         <Suspense fallback={null}>
           <Scene />
-          <HandController />
         </Suspense>
       </Canvas>
       
+      <HandController />
       <Loader />
       
       {/* UI Overlay */}
