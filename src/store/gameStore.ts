@@ -14,14 +14,13 @@ interface GameState {
 }
 
 const defaultPhotos = [
-  '/photos/fortune-active.png',
-  '/photos/fortune.png',
-  '/photos/rescue-active.png',
-  '/photos/rescue.png',
-  '/photos/score-active.png',
-  '/photos/score.png',
-  '/photos/seats-active.png',
-  '/photos/seats.png'
+  '/photos/1.jpg',
+  '/photos/2.jpg',
+  '/photos/3.jpg',
+  '/photos/4.jpg',
+  '/photos/5.jpg',
+  '/photos/6.jpg',
+  '/photos/7.jpg',
 ]
 
 export const useGameStore = create<GameState>((set) => ({
