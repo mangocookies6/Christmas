@@ -10,11 +10,12 @@ function App() {
   const addPhoto = useGameStore(state => state.addPhoto)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const url = URL.createObjectURL(file)
-      addPhoto(url)
-    }
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const url = URL.createObjectURL(file)
+    console.log('上传成功，临时 URL:', url)
+    addPhoto(url)
   }
 
   return (

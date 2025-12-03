@@ -19,8 +19,9 @@ const SafeImageMesh: React.FC<{ url: string }> = ({ url }) => {
 // 单张拍立得组件
 const PolaroidItem: React.FC<{
   url: string
+  featured: boolean
   positionData: { target: THREE.Vector3, chaos: THREE.Vector3, rotationZ: number }
-}> = ({ url, positionData }) => {
+}> = ({ url, featured, positionData }) => {
   const groupRef = useRef<THREE.Group>(null)
   const mode = useGameStore(s => s.mode)
   
@@ -30,15 +31,14 @@ const PolaroidItem: React.FC<{
     if (!groupRef.current) return
     
     const isChaos = mode === 'CHAOS'
-    const dest = isChaos ? positionData.chaos : positionData.target
+    const dest = featured ? positionData.target : isChaos ? positionData.chaos : positionData.target
     
-    currentPos.current.lerp(dest, 0.05)
+    currentPos.current.lerp(dest, featured ? 0.2 : 0.05)
     
-    // NaN 检查
     if (isNaN(currentPos.current.x)) currentPos.current.copy(positionData.target)
 
     groupRef.current.position.copy(currentPos.current)
-    groupRef.current.rotation.set(0, 0, positionData.rotationZ)
+    groupRef.current.rotation.set(0, 0, featured ? 0 : positionData.rotationZ)
   })
 
   return (
@@ -58,21 +58,32 @@ const PolaroidItem: React.FC<{
 const Polaroids: React.FC = () => {
   // 从 store 获取图片列表
   const urls = useGameStore(state => state.photos)
+  console.log('当前照片列表', urls)
   
   const count = urls.length
 
   const data = useMemo(() => {
-    return urls.map((_, i) => {
+    return urls.map((url, i) => {
       const tPos = getConePosition(i, count, 8.5, 13.5, {
         layers: 12,
         layerGap: 0.15,
         jitter: 0.3,
       })
+
       const cPos = getSpherePosition(24, i * 1.91 + 4)
+
+      // 新上传的照片（数组最后一个）固定在树前方，确保显眼
+      const isFeatured = url.startsWith('blob:') && i === count - 1
+      if (isFeatured) {
+        tPos.set(0, 3.5, 2.5)
+        cPos.set(0, 3.5, 2.5)
+      }
+
       return {
         target: tPos,
         chaos: cPos,
-        rotationZ: (pseudoRandom(i * 2.73 + 7) - 0.5) * 0.5
+        rotationZ: (pseudoRandom(i * 2.73 + 7) - 0.5) * 0.5,
+        featured: isFeatured,
       }
     })
   }, [urls, count])
@@ -83,6 +94,7 @@ const Polaroids: React.FC = () => {
         <PolaroidItem 
           key={`${url}-${i}`} 
           url={url} 
+          featured={data[i].featured}
           positionData={data[i]} 
         />
       ))}
