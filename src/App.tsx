@@ -34,18 +34,25 @@ function App() {
       <Loader />
       
       {/* UI Overlay */}
-      <div className="absolute top-0 left-0 p-8 text-gold pointer-events-none font-serif z-10">
-        <h1 className="text-5xl font-bold mb-2 text-[#FFD700] drop-shadow-lg">GRAND LUXURY TREE</h1>
-        <p className="text-xl text-[#aaddbb] max-w-md">
-          <span className="text-white font-bold">OPEN HAND</span> to unleash chaos.
-          <br />
-          <span className="text-white font-bold">MAKE A FIST</span> to form the tree.
-          <br />
-          Move hand to rotate view.
-        </p>
+      <div className="absolute bottom-8 left-8 pointer-events-none font-serif z-10">
+        <h1 className="text-3xl font-bold mb-3 text-[#FFD700] drop-shadow-lg">GRAND LUXURY TREE</h1>
+        <div className="text-base text-[#aaddbb] max-w-md space-y-1 font-sans bg-black/30 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+          <p className="flex items-center gap-2">
+            <span className="text-[#FFD700] font-bold">🖐 张开手掌</span> 
+            <span>释放混乱</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <span className="text-[#FFD700] font-bold">✊ 握紧拳头</span> 
+            <span>聚合成树</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <span className="text-white/80">↔️ 移动手部</span> 
+            <span>旋转视角</span>
+          </p>
+        </div>
       </div>
       
-      <div className="absolute bottom-8 left-8 text-xs text-gray-500 z-10">
+      <div className="absolute bottom-2 left-8 text-[10px] text-gray-600 z-10 opacity-50">
          Powered by React 19 & R3F
       </div>
 
