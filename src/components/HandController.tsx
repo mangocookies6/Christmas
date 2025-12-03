@@ -11,6 +11,7 @@ const HandController: React.FC = () => {
   const [model, setModel] = useState<handpose.HandPose | null>(null)
   const setMode = useGameStore((state) => state.setMode)
   const setCameraTarget = useGameStore((state) => state.setCameraTarget)
+  const [status, setStatus] = useState<string>('Loading...')
   
   // 初始化模型
   useEffect(() => {
@@ -20,8 +21,10 @@ const HandController: React.FC = () => {
         const loadedModel = await handpose.load()
         setModel(loadedModel)
         console.log('Handpose model loaded')
+        setStatus('Ready')
       } catch (e) {
         console.error('Failed to load handpose', e)
+        setStatus('Error')
       }
     }
     loadModel()
@@ -31,51 +34,77 @@ const HandController: React.FC = () => {
   useFrame(async ({ clock }) => {
     // 限制检测频率
     if (!model || !webcamRef.current || !webcamRef.current.video || webcamRef.current.video.readyState !== 4) return
-    if (clock.elapsedTime % 0.2 > 0.05) return 
+    // 提高采样率以获得更流畅的运动
+    if (clock.elapsedTime % 0.1 > 0.02) return 
 
     const video = webcamRef.current.video
     try {
         const predictions = await model.estimateHands(video)
 
         if (predictions.length > 0) {
-        const hand = predictions[0]
-        const landmarks = hand.landmarks as number[][]
+          const hand = predictions[0]
+          const landmarks = hand.landmarks as number[][]
 
-        // 手指张开检测算法 (Comparison of Tip-Palm vs Knuckle-Palm distance)
-        const palm = landmarks[0]
-        const knuckles = [5, 9, 13, 17]
-        const tips = [8, 12, 16, 20]
+          // 1. 更精准的手势识别算法 (Check Extension of each finger)
+          // Fingers: Index(8), Middle(12), Ring(16), Pinky(20)
+          // Knuckles: Index(5), Middle(9), Ring(13), Pinky(17)
+          // Wrist: 0
+          const wrist = landmarks[0]
+          
+          const isFingerExtended = (tipIdx: number, knuckleIdx: number) => {
+            const tip = landmarks[tipIdx]
+            const knuckle = landmarks[knuckleIdx]
+            
+            const tipDist = Math.hypot(tip[0]-wrist[0], tip[1]-wrist[1], tip[2]-wrist[2])
+            const knuckleDist = Math.hypot(knuckle[0]-wrist[0], knuckle[1]-wrist[1], knuckle[2]-wrist[2])
+            
+            return tipDist > knuckleDist + 20 // 20 is a safe buffer
+          }
 
-        const getDist = (idx: number) => {
-            const p = landmarks[idx]
-            return Math.sqrt(Math.pow(p[0]-palm[0],2) + Math.pow(p[1]-palm[1],2) + Math.pow(p[2]-palm[2],2))
-        }
+          const extendedCount = [
+            isFingerExtended(8, 5),   // Index
+            isFingerExtended(12, 9),  // Middle
+            isFingerExtended(16, 13), // Ring
+            isFingerExtended(20, 17)  // Pinky
+          ].filter(Boolean).length
 
-        let avgKnuckleDist = 0
-        let avgTipDist = 0
-        knuckles.forEach(i => avgKnuckleDist += getDist(i))
-        tips.forEach(i => avgTipDist += getDist(i))
-        avgKnuckleDist /= 4
-        avgTipDist /= 4
+          // Thumb check (special case)
+          const thumbTip = landmarks[4]
+          const thumbIp = landmarks[3]
+          const isThumbExtended = Math.hypot(thumbTip[0]-wrist[0], thumbTip[1]-wrist[1]) > Math.hypot(thumbIp[0]-wrist[0], thumbIp[1]-wrist[1])
+          
+          const totalExtended = extendedCount + (isThumbExtended ? 1 : 0)
 
-        const ratio = avgTipDist / (avgKnuckleDist + 0.01) // prevent div by 0
-        
-        // 阈值调整
-        if (ratio > 1.5) {
-            setMode('CHAOS') // Open hand
-        } else if (ratio < 1.2) {
-            setMode('FORMED') // Fist
-        }
+          if (totalExtended >= 4) {
+             setMode('CHAOS')
+             setStatus('Open Hand (Chaos)')
+          } else if (totalExtended <= 1) {
+             setMode('FORMED')
+             setStatus('Fist (Formed)')
+          } else {
+             setStatus('Tracking...')
+          }
 
-        // 2. 视角控制
-        const handX = landmarks[0][0]
-        const handY = landmarks[0][1]
-        
-        // Video is 640x480
-        const normalizedX = (handX / 640) * 2 - 1
-        const normalizedY = -(handY / 480) * 2 + 1 
-        
-        setCameraTarget(normalizedX * 2, normalizedY * 0.5) 
+          // 2. 视角控制 - 平滑 & 死区 (Deadzone)
+          const handX = landmarks[0][0]
+          const handY = landmarks[0][1]
+          
+          // Video is 640x480. Normalized: -1 to 1
+          let normalizedX = (handX / 640) * 2 - 1
+          let normalizedY = -(handY / 480) * 2 + 1 
+
+          // 增加死区，防止抖动
+          if (Math.abs(normalizedX) < 0.15) normalizedX = 0
+          if (Math.abs(normalizedY) < 0.15) normalizedY = 0
+
+          // 平滑映射：加大 X 轴旋转范围，使旋转更明显
+          // 使用指数平滑或直接映射
+          const sensitivityX = 3.5 
+          const sensitivityY = 0.8
+
+          setCameraTarget(normalizedX * sensitivityX, normalizedY * sensitivityY) 
+        } else {
+          setStatus('No Hand Detected')
         }
     } catch {
         // ignore frame errors
@@ -84,14 +113,19 @@ const HandController: React.FC = () => {
 
   return (
     <Html fullscreen style={{ pointerEvents: 'none' }}>
-      <div className="fixed top-4 right-4 w-48 h-36 z-50 opacity-60 border-2 border-[#FFD700] rounded overflow-hidden pointer-events-none bg-black">
-        <Webcam
-          ref={webcamRef}
-          className="w-full h-full object-cover transform scale-x-[-1]"
-          width={640}
-          height={480}
-          screenshotFormat="image/jpeg"
-        />
+      <div className="fixed top-4 right-4 flex flex-col items-end z-50">
+        <div className="w-48 h-36 opacity-80 border-2 border-[#FFD700] rounded overflow-hidden bg-black shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+          <Webcam
+            ref={webcamRef}
+            className="w-full h-full object-cover transform scale-x-[-1]"
+            width={640}
+            height={480}
+            screenshotFormat="image/jpeg"
+          />
+        </div>
+        <div className="mt-2 px-3 py-1 bg-black/80 text-[#FFD700] text-sm font-mono rounded border border-[#FFD700]/30 backdrop-blur-sm">
+          {status}
+        </div>
       </div>
     </Html>
   )
