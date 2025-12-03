@@ -105,12 +105,9 @@ const AuraParticles: React.FC = () => {
   const { positions, randoms, sizes } = useMemo(() => generateBackgroundParticles(count), [])
 
   useEffect(() => {
-    const unsub = useGameStore.subscribe(
-      (state) => state.pointer,
-      (pointer) => {
-        pointerRef.current.copy(pointer)
-      }
-    )
+    const unsub = useGameStore.subscribe((state) => {
+      pointerRef.current.copy(state.pointer)
+    })
     return () => unsub()
   }, [])
 
@@ -127,21 +124,15 @@ const AuraParticles: React.FC = () => {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-aRandom"
-          count={count}
-          array={randoms}
-          itemSize={1}
+          args={[randoms, 1]}
         />
         <bufferAttribute
           attach="attributes-aSize"
-          count={count}
-          array={sizes}
-          itemSize={1}
+          args={[sizes, 1]}
         />
       </bufferGeometry>
       <primitive object={AmbientShaderMaterial} attach="material" />

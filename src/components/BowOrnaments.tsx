@@ -36,7 +36,8 @@ const BowOrnaments: React.FC<Props> = ({ count = 40, color = '#FF9FD6', scale = 
   const dummy = new THREE.Object3D()
 
   useFrame((state) => {
-    if (!meshRef.current) return
+    const mesh = meshRef.current
+    if (!mesh) return
     const isChaos = mode === 'CHAOS'
 
     data.forEach((item, i) => {
@@ -54,10 +55,10 @@ const BowOrnaments: React.FC<Props> = ({ count = 40, color = '#FF9FD6', scale = 
       )
       dummy.scale.setScalar(item.scale)
       dummy.updateMatrix()
-      meshRef.current.setMatrixAt(i, dummy.matrix)
+      mesh.setMatrixAt(i, dummy.matrix)
     })
 
-    meshRef.current.instanceMatrix.needsUpdate = true
+    mesh.instanceMatrix.needsUpdate = true
   })
 
   const geometry = useMemo(() => new THREE.TorusGeometry(0.45, 0.15, 16, 32), [])

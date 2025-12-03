@@ -103,12 +103,9 @@ const Foliage: React.FC = () => {
   const pointerWorld = useRef(new THREE.Vector2())
 
   useEffect(() => {
-    const unsub = useGameStore.subscribe(
-      (state) => state.pointer,
-      (pointer) => {
-        pointerRef.current.copy(pointer)
-      }
-    )
+    const unsub = useGameStore.subscribe((state) => {
+      pointerRef.current.copy(state.pointer)
+    })
     return () => unsub()
   }, [])
 
@@ -170,28 +167,20 @@ const Foliage: React.FC = () => {
     <points>
       <bufferGeometry>
         <bufferAttribute
-          attach="attributes-position" // 用作 ChaosPos (base position)
-          count={count}
-          array={positions}
-          itemSize={3}
+          attach="attributes-position"
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-aChaosPos"
-          count={count}
-          array={positions}
-          itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-aTargetPos"
-          count={count}
-          array={targetPositions}
-          itemSize={3}
+          args={[targetPositions, 3]}
         />
         <bufferAttribute
           attach="attributes-aRandom"
-          count={count}
-          array={randoms}
-          itemSize={1}
+          args={[randoms, 1]}
         />
       </bufferGeometry>
       <shaderMaterial

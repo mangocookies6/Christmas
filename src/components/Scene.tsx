@@ -15,7 +15,7 @@ const Scene: React.FC = () => {
   const targetXY = useGameStore(s => s.cameraTarget)
   
   // 摄像机平滑跟随手势
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (groupRef.current) {
       // 目标旋转角度 (基于手势位置)
       const targetRotX = targetXY.y * 0.5 // 上下看
@@ -139,7 +139,7 @@ const Scene: React.FC = () => {
         </Float>
       </group>
 
-      <EffectComposer disableNormalPass>
+      <EffectComposer>
         <Bloom 
             luminanceThreshold={0.8} 
             mipmapBlur 
