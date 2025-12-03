@@ -84,7 +84,7 @@ const HandController: React.FC = () => {
 
   return (
     <Html fullscreen style={{ pointerEvents: 'none' }}>
-      <div className="fixed bottom-4 right-4 w-48 h-36 z-50 opacity-60 border-2 border-[#FFD700] rounded overflow-hidden pointer-events-none bg-black">
+      <div className="fixed top-4 right-4 w-48 h-36 z-50 opacity-60 border-2 border-[#FFD700] rounded overflow-hidden pointer-events-none bg-black">
         <Webcam
           ref={webcamRef}
           className="w-full h-full object-cover transform scale-x-[-1]"

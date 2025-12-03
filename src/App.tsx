@@ -1,7 +1,7 @@
 import React, { Suspense, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import Scene from './components/Scene'
-import MouseController from './components/MouseController'
+import HandController from './components/HandController'
 import { Loader } from '@react-three/drei'
 import { useGameStore } from './store/gameStore'
 
@@ -27,7 +27,7 @@ function App() {
       >
         <Suspense fallback={null}>
           <Scene />
-          <MouseController />
+          <HandController />
         </Suspense>
       </Canvas>
       
@@ -37,11 +37,11 @@ function App() {
       <div className="absolute top-0 left-0 p-8 text-gold pointer-events-none font-serif z-10">
         <h1 className="text-5xl font-bold mb-2 text-[#FFD700] drop-shadow-lg">GRAND LUXURY TREE</h1>
         <p className="text-xl text-[#aaddbb] max-w-md">
-          <span className="text-white font-bold">CLICK & HOLD</span> to unleash chaos.
+          <span className="text-white font-bold">OPEN HAND</span> to unleash chaos.
           <br />
-          <span className="text-white font-bold">RELEASE</span> to form the tree.
+          <span className="text-white font-bold">MAKE A FIST</span> to form the tree.
           <br />
-          Move mouse to rotate view.
+          Move hand to rotate view.
         </p>
       </div>
       
